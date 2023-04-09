@@ -3,6 +3,26 @@ let PLAYER;
 let linkField = document.getElementsByTagName('input')[0];
 let buttons = document.querySelectorAll('.btn');
 let ws = new WebSocket('ws://localhost:8000/ws/game');
+let copyBtn = document.getElementsByClassName('copy-btn')[0];
+
+
+function switchCurrentPlayer(currentPlayer){
+    let currentSelecter = document.getElementsByClassName('selecter');
+    if (currentPlayer == 'red'){
+        currentSelecter[0].classList.add('current-player');
+        currentSelecter[1].classList.remove('current-player');
+    }else{
+        currentSelecter[0].classList.remove('current-player');
+        currentSelecter[1].classList.add('current-player');
+    }
+}
+
+copyBtn.addEventListener('click', () => {
+    linkField.select();
+    document.execCommand('copy');
+    copyBtn.classList.add('copyed');
+    copyBtn.innerText = 'done';
+})
 
 buttons.forEach(button => {
     button.addEventListener('click', () => {
@@ -11,8 +31,6 @@ buttons.forEach(button => {
         };
         let mark = PLAYER == 'red' ? 'X' : 'O';
         let event = {'type': 'game'};
-
-        // button.innerText = mark;
 
         event.pos = button.value
         event.player = PLAYER;
@@ -41,6 +59,7 @@ ws.onmessage = function(e){
     let data = JSON.parse(e.data);
     let event = {};
     console.log(data);
+
     switch (data.type){
         case 'init':
             event.type = 'ok'
@@ -52,7 +71,8 @@ ws.onmessage = function(e){
             break;
 
         case 'join':
-            linkField.style.display = 'none';
+            let linkBox = document.getElementsByClassName('link-box')[0];
+            linkBox.style.display = 'none';
 
             event.type = 'ok'
             PLAYER = data.player;
@@ -61,16 +81,18 @@ ws.onmessage = function(e){
             break;
         
         case 'mapping':
-            let map = new Map(Object.entries(data.map))
-            console.log(map.keys);
-            for (key of map.keys){
-                buttons[Number(key)].innerText(map.get(key));
-            }
-
+            let map = data.map
+            let keys = Object.keys(map);
+            keys.forEach(key => {
+                buttons[Number(key)].innerText = map[key];
+            })
+            
             break;
 
         case 'player':
             let currentPlayer = data.current;
+            switchCurrentPlayer(currentPlayer);
+
             if (currentPlayer != PLAYER){
                 buttons.forEach(btn => {
                     btn.disabled = true;
@@ -95,6 +117,8 @@ ws.onmessage = function(e){
 
             cell = document.querySelector(`.btn[value="${pos}"]`);
             cell.innerText = mark;
+
+            switchCurrentPlayer(player);
             break;
         
         case 'win':
