@@ -1,6 +1,8 @@
 import secrets
 
 from fastapi import APIRouter, WebSocket, WebSocketDisconnect
+from loguru import logger
+
 from .utils import ConnectionManager, Game
 
 router = APIRouter()
@@ -25,12 +27,13 @@ async def start_game(game: Game, ws: WebSocket, connections: set[WebSocket]):
     while True:
         event = await ws.receive_json()
         if event['type'] == 'ok':
-            print('Ready to play')
             player = game.get_current_player()
+
             await ws.send_json({
                 'type': 'player',
                 'current': player
             })
+            logger.info(f'Player ready to play')
             break
 
     while True:
@@ -38,7 +41,6 @@ async def start_game(game: Game, ws: WebSocket, connections: set[WebSocket]):
 
         current_player = game.get_current_player()
         player = event['player']
-        print(current_player, player)
         if player != current_player:
             response = {
                 'type': 'exception',
@@ -106,6 +108,7 @@ async def init(ws: WebSocket):
                 'mark': mark
             }
 
+            logger.info(f'Player join to {key} room')
             await ws.send_json(response)
             await get_map(game, ws)
             await start_game(game, ws, connections)
@@ -127,16 +130,20 @@ async def init(ws: WebSocket):
                 'join': key,
                 'mark': mark
             }
+
+            logger.info(f'Game {key} created')
             await ws.send_json(response)
-            print(f'Game {key} created')
             await start_game(game, ws, connections)
 
     except WebSocketDisconnect:
         _, connections = JOIN[key]
         connections = list(connections)
         connections.remove(ws)
+
+        logger.info(f'Player {ws.client} left game')
         for socket in connections:
             await socket.send_text('Client left')
 
     finally:
         del JOIN[key]
+        logger.info(f'Game {key} delete')
