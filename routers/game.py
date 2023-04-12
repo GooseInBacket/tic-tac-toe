@@ -8,7 +8,7 @@ router = APIRouter()
 manager = ConnectionManager()
 
 JOIN = dict()
-PLAYERS = cycle(('red', 'blue'))
+MARKS = cycle(('X', 'O'))
 
 
 async def get_map(game: Game, ws: WebSocket):
@@ -88,7 +88,7 @@ async def start_game(game: Game, ws: WebSocket, connections: set[WebSocket]):
 
 
 @router.websocket('/ws/game')
-async def do_move(ws: WebSocket):
+async def init(ws: WebSocket):
     await ws.accept()
     try:
         event = await ws.receive_json()
@@ -100,7 +100,8 @@ async def do_move(ws: WebSocket):
 
             response = {
                 'type': 'join',
-                'player': next(PLAYERS)
+                'player': 'blue',
+                'mark': next(MARKS)
             }
 
             await ws.send_json(response)
@@ -119,16 +120,21 @@ async def do_move(ws: WebSocket):
             response = {
                 'type': 'init',
                 'join': key,
-                'player': next(PLAYERS)
+                'player': 'red',
+                'mark': next(MARKS)
             }
             await ws.send_json(response)
             print(f'Game {key} created')
             await start_game(game, ws, connections)
+
     except WebSocketDisconnect:
         _, connections = JOIN[key]
         connections = list(connections)
         connections.remove(ws)
         for socket in connections:
             await socket.send_text('Client left')
+
     finally:
         del JOIN[key]
+
+# TODO реализовать возможность вести счёт

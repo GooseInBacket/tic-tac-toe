@@ -1,4 +1,5 @@
 let PLAYER;
+let MARK;
 
 let linkField = document.getElementsByTagName('input')[0];
 let buttons = document.querySelectorAll('.btn');
@@ -45,7 +46,7 @@ ws.onopen = function(){
     let params = new URLSearchParams(window.location.search);
     let event = {'type': 'init'};
     if (params.has('join')){
-        event.join = params.get('join')
+        event.join = params.get('join');
     }
     ws.send(JSON.stringify(event));
 }

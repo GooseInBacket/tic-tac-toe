@@ -24,7 +24,11 @@ class ConnectionManager:
 
 class Game:
     def __init__(self):
-        self.__players = ['red', 'blue']
+        self.__players = {
+            'red': 0,
+            'blue': 0,
+        }
+        self.__marks = 'XO'
         self.__borad = np.zeros(9, dtype=str)
         self.__win_a = np.array(['X', 'X', 'X'])
         self.__win_b = np.array(['O', 'O', 'O'])
@@ -54,6 +58,15 @@ class Game:
             elif (a == self.__win_b).all() or (b == self.__win_b).all():
                 return '0'
 
+    def restart(self):
+        self.__borad = np.zeros(9, dtype=str)
+        self.set_current_player()
+
+    def next_player(self):
+        players_list = list(self.__players.keys())
+        current_player = players_list.index(self.__current_player)
+        self.__current_player = players_list[not current_player]
+
     def get_board(self):
         return self.__borad
 
@@ -70,10 +83,4 @@ class Game:
 
     def set_current_player(self):
         self.__current_player = random.choice(['red', 'blue'])
-
-    def next_player(self):
-        print(self.__current_player)
-        n = self.__players.index(self.__current_player)
-        self.__current_player = self.__players[not n]
-        print(self.__current_player)
 
