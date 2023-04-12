@@ -1,6 +1,8 @@
+import random
+from itertools import cycle
+
 from fastapi import WebSocket
 import numpy as np
-import random
 
 
 class ConnectionManager:
@@ -25,10 +27,10 @@ class ConnectionManager:
 class Game:
     def __init__(self):
         self.__players = {
-            'red': 0,
-            'blue': 0,
+            'red': [None, 0],
+            'blue': [None, 0]
         }
-        self.__marks = 'XO'
+        self.__marks = cycle(('X', 'O'))
         self.__borad = np.zeros(9, dtype=str)
         self.__win_a = np.array(['X', 'X', 'X'])
         self.__win_b = np.array(['O', 'O', 'O'])
@@ -46,17 +48,21 @@ class Game:
 
         for line in range(board.shape[1]):
             if (board[:, line] == self.__win_a).all() or (board[line] == self.__win_a).all():
-                return 'X'
+                winner = 'red' if self.__players['red'][0] == 'X' else 'blue'
+                return winner
             elif (board[:, line] == self.__win_b).all() or (board[line] == self.__win_b).all():
-                return 'O'
+                winner = 'red' if self.__players['red'][0] == 'O' else 'blue'
+                return winner
         else:
             a = np.array((board[0][0], board[1][1], board[2][2]))
             b = np.array((board[0][2], board[1][1], board[2][0]))
 
             if (a == self.__win_a).all() or (b == self.__win_a).all():
-                return 'X'
+                winner = 'red' if self.__players['red'][0] == 'X' else 'blue'
+                return winner
             elif (a == self.__win_b).all() or (b == self.__win_b).all():
-                return '0'
+                winner = 'red' if self.__players['red'][0] == 'O' else 'blue'
+                return winner
 
     def restart(self):
         self.__borad = np.zeros(9, dtype=str)
@@ -69,6 +75,12 @@ class Game:
 
     def get_board(self):
         return self.__borad
+
+    def get_mark(self):
+        return next(self.__marks)
+
+    def get_score(self, player: str):
+        return self.__players[player][1]
 
     def set_cell(self, pos: int, mark: str):
         assert pos in range(10)
@@ -84,3 +96,8 @@ class Game:
     def set_current_player(self):
         self.__current_player = random.choice(['red', 'blue'])
 
+    def set_mark(self, player: str, mark: str):
+        self.__players.get(player)[0] = mark
+
+    def set_score_for(self, player):
+        self.__players.get(player)[1] += 1

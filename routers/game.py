@@ -2,13 +2,11 @@ import secrets
 
 from fastapi import APIRouter, WebSocket, WebSocketDisconnect
 from .utils import ConnectionManager, Game
-from itertools import cycle
 
 router = APIRouter()
 manager = ConnectionManager()
 
 JOIN = dict()
-MARKS = cycle(('X', 'O'))
 
 
 async def get_map(game: Game, ws: WebSocket):
@@ -38,7 +36,6 @@ async def start_game(game: Game, ws: WebSocket, connections: set[WebSocket]):
     while True:
         event = await ws.receive_json()
 
-        # assert 'play' in event
         current_player = game.get_current_player()
         player = event['player']
         print(current_player, player)
@@ -54,6 +51,7 @@ async def start_game(game: Game, ws: WebSocket, connections: set[WebSocket]):
         mark = event['mark']
         game.set_cell(pos, mark)
         state = game.check_bord()
+        response = {}
 
         if state is None:
             game.next_player()
@@ -65,13 +63,15 @@ async def start_game(game: Game, ws: WebSocket, connections: set[WebSocket]):
                 'player': next_player
             }
 
-        elif state in 'XO':
+        elif state in ('red', 'blue'):
+            game.set_score_for(state)
             response = {
                 'type': 'win',
                 'winner': state,
-                'player': player,
                 'pos': pos,
-                'mark': mark
+                'mark': mark,
+                'red': game.get_score('red'),
+                'blue': game.get_score('blue')
             }
         elif state == 'draw':
             response = {
@@ -96,12 +96,14 @@ async def init(ws: WebSocket):
             ''' Присоединяется '''
             key = event['join']
             game, connections = JOIN[key]
+            mark = game.get_mark()
+            game.set_mark('blue', mark)
             connections.add(ws)
 
             response = {
                 'type': 'join',
                 'player': 'blue',
-                'mark': next(MARKS)
+                'mark': mark
             }
 
             await ws.send_json(response)
@@ -114,14 +116,16 @@ async def init(ws: WebSocket):
 
             connections = {ws}
             key = secrets.token_urlsafe(12)
+            mark = game.get_mark()
+
+            game.set_mark('red', mark)
 
             JOIN[key] = game, connections
 
             response = {
                 'type': 'init',
                 'join': key,
-                'player': 'red',
-                'mark': next(MARKS)
+                'mark': mark
             }
             await ws.send_json(response)
             print(f'Game {key} created')
@@ -136,5 +140,3 @@ async def init(ws: WebSocket):
 
     finally:
         del JOIN[key]
-
-# TODO реализовать возможность вести счёт

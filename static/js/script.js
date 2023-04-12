@@ -30,12 +30,11 @@ buttons.forEach(button => {
         if (button.innerText){
             throw new Error('this cell is busy');
         };
-        let mark = PLAYER == 'red' ? 'X' : 'O';
         let event = {'type': 'game'};
 
         event.pos = button.value
         event.player = PLAYER;
-        event.mark = mark;
+        event.mark = MARK;
 
         ws.send(JSON.stringify(event));
     })
@@ -63,20 +62,24 @@ ws.onmessage = function(e){
 
     switch (data.type){
         case 'init':
-            event.type = 'ok'
+            PLAYER = 'red';
+
+            event.type = 'ok';
             linkField.value = window.location.href + `?join=${data.join}`;
-            PLAYER = data.player;
+            MARK = data.mark;
             console.log(data.join);
             
             ws.send(JSON.stringify(event));
             break;
 
         case 'join':
+            PLAYER = 'blue';
+
             let linkBox = document.getElementsByClassName('link-box')[0];
             linkBox.style.display = 'none';
 
             event.type = 'ok'
-            PLAYER = data.player;
+            MARK = data.mark;
 
             ws.send(JSON.stringify(event));
             break;
@@ -124,9 +127,10 @@ ws.onmessage = function(e){
         
         case 'win':
             winner = data.winner;
-            player = data.player;
             pos = data.pos;
             mark = data.mark;
+            let redScore = data.red;
+            let blueScore = data.blue; 
 
             cell = document.querySelector(`.btn[value="${pos}"]`);
             cell.innerText = mark;
@@ -135,7 +139,7 @@ ws.onmessage = function(e){
                 btn.disabled = true;
             })
 
-            console.log(winner);
+            alert(`Winner is ${winner}\nScore: red - ${redScore} blue - ${blueScore}`);
             
             break
 
