@@ -119,9 +119,56 @@ h1{
 }
 
 .copyed{
-    background-color: rgb(104, 196, 104);
-    color: white;
-    transition: 0.5s;
+    animation: confirm 4s;
+}
+
+.copy-btn::after{
+    content: 'content_copy';
+}
+
+.copyed::after{
+    content: 'content_copy';
+    animation: swicthText 4s;
+}
+
+@keyframes confirm{
+    from {
+        background-color: white;
+        color: rgb(42, 103, 144);
+    }
+
+    25%{
+        background-color: rgb(104, 196, 104);
+        color: white;
+    }
+
+    75%{
+        background-color: rgb(104, 196, 104);
+        color: white;
+    }
+
+    to {
+        background-color: white;
+        color: rgb(42, 103, 144);
+    }
+}
+
+@keyframes swicthText{
+    from{
+        content: 'content_copy'
+    }
+
+    25%{
+        content: 'done';
+    }
+
+    75%{
+        content: 'done';
+    }
+
+    to{
+        content: 'content_copy';
+    }
 }
 
 input{

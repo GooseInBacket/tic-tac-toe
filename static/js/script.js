@@ -22,7 +22,10 @@ copyBtn.addEventListener('click', () => {
     linkField.select();
     document.execCommand('copy');
     copyBtn.classList.add('copyed');
-    copyBtn.innerText = 'done';
+})
+
+copyBtn.addEventListener('animationend', () => {
+    copyBtn.classList.remove('copyed');
 })
 
 buttons.forEach(button => {
