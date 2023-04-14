@@ -9,34 +9,59 @@ let ctrlBtn = document.getElementsByClassName('popUp-ctrl-btn');
 
 
 function switchCurrentPlayer(currentPlayer){
-    let currentSelecter = document.getElementsByClassName('selecter');
-    if (currentPlayer == 'red'){
-        currentSelecter[0].classList.add('current-player');
-        currentSelecter[1].classList.remove('current-player');
+    let XSelector;
+    let OSelector;
+    let playerSelecter = document.querySelectorAll('.selecter');
+
+    playerSelecter.forEach(selector => {
+        if (selector.innerHTML == 'X'){
+            XSelector = selector;
+        }
+        else{
+            OSelector = selector;
+        }
+    })
+
+    if (currentPlayer == PLAYER){
+        if (MARK == 'X'){
+            XSelector.classList.add('current-player');
+            OSelector.classList.remove('current-player');
+        }
+        else{
+            OSelector.classList.add('current-player');
+            XSelector.classList.remove('current-player');
+        }
     }else{
-        currentSelecter[0].classList.remove('current-player');
-        currentSelecter[1].classList.add('current-player');
+        if (MARK == 'X'){
+            OSelector.classList.add('current-player');
+            XSelector.classList.remove('current-player');
+        }
+        else{
+            XSelector.classList.add('current-player');
+            OSelector.classList.remove('current-player');
+        }
     }
+    
 }
 
 ctrlBtn[0].addEventListener('click', () => {
     // переход на следующий раунд
-    let response = {
-        'type': 'resume',
+    let event = {
+        'type': 'await',
         'player': PLAYER
     }
 
-    ws.send(JSON.stringify(response))
+    ws.send(JSON.stringify(event))
 });
 
 ctrlBtn[1].addEventListener('click', () =>{
     // выход из игры
-    let response = {
+    let event = {
         'type': 'exit',
         'player': PLAYER
     }
 
-    ws.send(JSON.stringify(response));
+    ws.send(JSON.stringify(event));
 })
 
 copyBtn.addEventListener('click', () => {
@@ -89,7 +114,9 @@ ws.onmessage = function(e){
         case 'init':
             PLAYER = 'red';
 
-            event.type = 'ok';
+            event.type = 'await';
+            event.player = PLAYER;
+
             linkField.value = window.location.href + `?join=${data.join}`;
             MARK = data.mark;
             console.log(data.join);
@@ -103,7 +130,9 @@ ws.onmessage = function(e){
             let linkBox = document.getElementsByClassName('link-box')[0];
             linkBox.style.display = 'none';
 
-            event.type = 'ok'
+            event.type = 'await';
+            event.player = PLAYER;
+
             MARK = data.mark;
 
             ws.send(JSON.stringify(event));
@@ -151,9 +180,6 @@ ws.onmessage = function(e){
             break;
         
         case 'win':
-
-            console.log('ok');
-            
             winner = data.winner;
             pos = data.pos;
             mark = data.mark;
@@ -177,14 +203,29 @@ ws.onmessage = function(e){
 
             let popUp = document.getElementsByClassName('pop-up-container')[0];
             popUp.style.display = 'grid';
-            // alert(`Winner is ${winner}\nScore: red - ${redScore} blue - ${blueScore}`);
+            let winnerHolder = document.getElementById('winner');
+            if (winner == 'red'){
+                winnerHolder.innerText = 'красным'
+                winnerHolder.style.color = 'var(--palyer-one)';
+            }else{
+                winnerHolder.innerText = 'синим';
+                winnerHolder.style.color = 'var(--player-two)';
+            }
             
             break
         
+        case 'draw':
+            // доделать ничью
+            break;
+
         case 'ready':
             MARK = data.mark;
             document.getElementsByClassName('pop-up-container')[0].style.display = 'none';
-            break
+            buttons.forEach(btn => {
+                btn.disabled = true;
+            });
+
+            break;
 
         case 'all_ready':
             document.getElementsByClassName('pop-up-container')[0].style.display = 'none';
@@ -196,10 +237,8 @@ ws.onmessage = function(e){
                     btn.disabled = false;
                 }
             })
-            break;
-        
-        case 'mark':
-            MARK = data.mark;
+
+            switchCurrentPlayer(currentPlayer);
             break;
 
         case 'exception':

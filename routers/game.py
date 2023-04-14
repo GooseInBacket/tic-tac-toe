@@ -11,62 +11,49 @@ manager = ConnectionManager()
 JOIN = dict()
 
 
-async def get_map(game: Game, ws: WebSocket):
-    board = game.get_board()
-    cells = {i: cell for i, cell in enumerate(board) if cell}
+async def waiting_ready(ws: WebSocket, game: Game, connections: set[WebSocket], event: dict):
+    player = event['player']
+    mark = game.get_new_mark(player)
+    game.set_mark(player, mark)
 
     response = {
-        'type': 'mapping',
-        'map': cells,
+        'type': 'ready',
+        'mark': mark
     }
-
     await ws.send_json(response)
+
+    logger.info(f'{player} player is ready')
+
+    all_ready = game.ready()
+    if all_ready:
+        game.next_player()
+        next_player = game.get_current_player()
+
+        response = {
+            'type': 'all_ready',
+            'player': next_player,
+        }
+        for socket in connections:
+            await socket.send_json(response)
+
+        logger.info('All is ready')
 
 
 async def start_game(game: Game, ws: WebSocket, connections: set[WebSocket]):
     while True:
         event = await ws.receive_json()
-        if event['type'] == 'ok':
-            player = game.get_current_player()
-
-            await ws.send_json({
-                'type': 'player',
-                'current': player
-            })
-            logger.info(f'Player ready to play')
-            break
-
-    while True:
-        event = await ws.receive_json()
 
         current_player = game.get_current_player()
-        player = event['player']
 
-        if event['type'] == 'resume':
-            player = event['player']
-            all_ready = game.ready()
+        if event['type'] == 'exit':
+            # обработать выход из игры через попап
+            pass
 
-            if all_ready:
-                game.next_player()
-                next_player = game.get_current_player()
-
-                await ws.send_json({'type': 'mark', 'mark': game.get_new_mark(player)})
-
-                response = {
-                    'type': 'all_ready',
-                    'player': next_player,
-                }
-                for socket in connections:
-                    await socket.send_json(response)
-            else:
-                response = {
-                    'type': 'ready',
-                    'player': player,
-                    'mark': game.get_new_mark(player)
-                }
-                await ws.send_json(response)
+        if event['type'] == 'await':
+            await waiting_ready(ws, game, connections, event)
             continue
 
+        player = event['player']
         if player != current_player:
             response = {
                 'type': 'exception',
@@ -81,6 +68,7 @@ async def start_game(game: Game, ws: WebSocket, connections: set[WebSocket]):
         state = game.check_bord()
         response = {}
 
+        # ход игрока
         if state is None:
             game.next_player()
             next_player = game.get_current_player()
@@ -91,6 +79,7 @@ async def start_game(game: Game, ws: WebSocket, connections: set[WebSocket]):
                 'player': next_player
             }
 
+        # обработчик победы
         elif state in ('red', 'blue'):
             game.set_score_for(state)
             response = {
@@ -101,10 +90,14 @@ async def start_game(game: Game, ws: WebSocket, connections: set[WebSocket]):
                 'red': game.get_score('red'),
                 'blue': game.get_score('blue')
             }
+
+        # обработчик ничьи
         elif state == 'draw':
             response = {
                 'type': 'draw'
             }
+
+        # ошибка чистого поля
         elif state == 'clear':
             response = {
                 'type': 'exception',
@@ -136,7 +129,6 @@ async def init(ws: WebSocket):
 
             logger.info(f'Player join to {key} room')
             await ws.send_json(response)
-            await get_map(game, ws)
             await start_game(game, ws, connections)
         else:
             ''' Хост '''
