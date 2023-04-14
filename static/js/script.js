@@ -5,6 +5,7 @@ let linkField = document.getElementsByTagName('input')[0];
 let buttons = document.querySelectorAll('.btn');
 let ws = new WebSocket('ws://localhost:8000/ws/game');
 let copyBtn = document.getElementsByClassName('copy-btn')[0];
+let ctrlBtn = document.getElementsByClassName('popUp-ctrl-btn');
 
 
 function switchCurrentPlayer(currentPlayer){
@@ -17,6 +18,26 @@ function switchCurrentPlayer(currentPlayer){
         currentSelecter[1].classList.add('current-player');
     }
 }
+
+ctrlBtn[0].addEventListener('click', () => {
+    // переход на следующий раунд
+    let response = {
+        'type': 'resume',
+        'player': PLAYER
+    }
+
+    ws.send(JSON.stringify(response))
+});
+
+ctrlBtn[1].addEventListener('click', () =>{
+    // выход из игры
+    let response = {
+        'type': 'exit',
+        'player': PLAYER
+    }
+
+    ws.send(JSON.stringify(response));
+})
 
 copyBtn.addEventListener('click', () => {
     linkField.select();
@@ -59,6 +80,7 @@ ws.onmessage = function(e){
     let player;
     let cell;
     let winner;
+    let currentPlayer;
     let data = JSON.parse(e.data);
     let event = {};
     console.log(data);
@@ -97,7 +119,7 @@ ws.onmessage = function(e){
             break;
 
         case 'player':
-            let currentPlayer = data.current;
+            currentPlayer = data.current;
             switchCurrentPlayer(currentPlayer);
 
             if (currentPlayer != PLAYER){
@@ -151,10 +173,34 @@ ws.onmessage = function(e){
             buttons.forEach(btn => {
                 btn.disabled = true;
             })
+            
 
-            alert(`Winner is ${winner}\nScore: red - ${redScore} blue - ${blueScore}`);
+            let popUp = document.getElementsByClassName('pop-up-container')[0];
+            popUp.style.display = 'grid';
+            // alert(`Winner is ${winner}\nScore: red - ${redScore} blue - ${blueScore}`);
             
             break
+        
+        case 'ready':
+            MARK = data.mark;
+            document.getElementsByClassName('pop-up-container')[0].style.display = 'none';
+            break
+
+        case 'all_ready':
+            document.getElementsByClassName('pop-up-container')[0].style.display = 'none';
+
+            currentPlayer = data['player'];
+            buttons.forEach(btn => {
+                btn.innerText = '';
+                if (currentPlayer === PLAYER){
+                    btn.disabled = false;
+                }
+            })
+            break;
+        
+        case 'mark':
+            MARK = data.mark;
+            break;
 
         case 'exception':
             let desc = data.description;
