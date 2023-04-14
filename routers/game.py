@@ -41,6 +41,32 @@ async def start_game(game: Game, ws: WebSocket, connections: set[WebSocket]):
 
         current_player = game.get_current_player()
         player = event['player']
+
+        if event['type'] == 'resume':
+            player = event['player']
+            all_ready = game.ready()
+
+            if all_ready:
+                game.next_player()
+                next_player = game.get_current_player()
+
+                await ws.send_json({'type': 'mark', 'mark': game.get_new_mark(player)})
+
+                response = {
+                    'type': 'all_ready',
+                    'player': next_player,
+                }
+                for socket in connections:
+                    await socket.send_json(response)
+            else:
+                response = {
+                    'type': 'ready',
+                    'player': player,
+                    'mark': game.get_new_mark(player)
+                }
+                await ws.send_json(response)
+            continue
+
         if player != current_player:
             response = {
                 'type': 'exception',

@@ -35,6 +35,7 @@ class Game:
         self.__win_a = np.array(['X', 'X', 'X'])
         self.__win_b = np.array(['O', 'O', 'O'])
         self.__current_player = None
+        self.__ready_for_resume = 0;
 
     def check_bord(self):
         board = self.__borad.reshape(3, 3)
@@ -68,6 +69,13 @@ class Game:
         self.__borad = np.zeros(9, dtype=str)
         self.set_current_player()
 
+    def ready(self):
+        self.__ready_for_resume += 1
+        if self.__ready_for_resume == 2:
+            self.__ready_for_resume = 0
+            self.restart()
+            return True
+
     def next_player(self):
         players_list = list(self.__players.keys())
         current_player = players_list.index(self.__current_player)
@@ -78,6 +86,13 @@ class Game:
 
     def get_mark(self):
         return next(self.__marks)
+
+    def get_new_mark(self, player):
+        current_mark = self.__players[player][0]
+        print(current_mark)
+        self.__players[player][0] = 'X' if current_mark == 'O' else 'O'
+        print(self.__players[player][0])
+        return self.__players[player][0]
 
     def get_score(self, player: str):
         return self.__players[player][1]
