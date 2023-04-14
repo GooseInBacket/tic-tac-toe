@@ -129,15 +129,25 @@ ws.onmessage = function(e){
             break;
         
         case 'win':
+
+            console.log('ok');
+            
             winner = data.winner;
             pos = data.pos;
             mark = data.mark;
+
             let redScore = data.red;
             let blueScore = data.blue; 
 
             cell = document.querySelector(`.btn[value="${pos}"]`);
             cell.innerText = mark;
             
+            let redPlayerScore = document.getElementsByClassName('left')[0]; 
+            let bluePlayerScore = document.getElementsByClassName('right')[0]; 
+
+            redPlayerScore.innerText = redScore;
+            bluePlayerScore.innerText = blueScore;
+
             buttons.forEach(btn => {
                 btn.disabled = true;
             })

@@ -10,15 +10,17 @@
 <body>
     <div class="container">
         <div class="box-field">
-            <h1>Крестики нолики</h1>
-            <div class="score-box">
-                <div class="score left">0</div>
-                <div class="score" >результат</div>
-                <div class="score right">0</div>
+            <!-- <h1>Крестики нолики</h1> -->
+            <div class="legend">
+                <div>Игрок 1</div>
+                <div>Текущий ход</div>
+                <div>Игрок 2</div>
             </div>
             <div class="current-player-box">
-                <div class="selecter current-player">очередь X</div>
-                <div class="selecter">очередь O</div>
+                <div class="score left">0</div>
+                <div class="selecter current-player">X</div>
+                <div class="selecter">O</div>
+                <div class="score right">0</div>
             </div>
             <div class="field">
                 <button class="btn" value="0"></button>
@@ -34,6 +36,15 @@
             <div class="link-box">
                 <input type="text" readonly value="http://127.0.0.1:8000/?join=hEbAL7SP3xTGc4Y6">
                 <span class="copy-btn material-symbols-outlined"></span>
+            </div>
+        </div>
+        <div class="pop-up-container">
+            <div class="pop-up-case">
+                <h1>Победа за <span id="winner">красным</span></h1>
+                <div class="popUp-btn-ctrl">
+                    <button class="">Продолжить</button>
+                    <button class="">Выход</button>
+                </div>
             </div>
         </div>
     </div>
