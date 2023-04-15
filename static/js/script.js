@@ -1,51 +1,29 @@
 let PLAYER;
 let MARK;
 
-let linkField = document.getElementsByTagName('input')[0];
 let buttons = document.querySelectorAll('.btn');
 let ws = new WebSocket('ws://localhost:8000/ws/game');
+let linkField = document.getElementsByTagName('input')[0];
 let copyBtn = document.getElementsByClassName('copy-btn')[0];
 let ctrlBtn = document.getElementsByClassName('popUp-ctrl-btn');
 
 
-function switchCurrentPlayer(currentPlayer){
-    let XSelector;
-    let OSelector;
-    let playerSelecter = document.querySelectorAll('.selecter');
-
-    playerSelecter.forEach(selector => {
-        if (selector.innerHTML == 'X'){
-            XSelector = selector;
-        }
-        else{
-            OSelector = selector;
-        }
+function btnDisabled(state = false){
+    buttons.forEach(btn => {
+        btn.disabled = state;
     })
+}
 
-    if (currentPlayer == PLAYER){
-        if (MARK == 'X'){
-            XSelector.classList.add('current-player');
-            OSelector.classList.remove('current-player');
-        }
-        else{
-            OSelector.classList.add('current-player');
-            XSelector.classList.remove('current-player');
-        }
-    }else{
-        if (MARK == 'X'){
-            OSelector.classList.add('current-player');
-            XSelector.classList.remove('current-player');
-        }
-        else{
-            XSelector.classList.add('current-player');
-            OSelector.classList.remove('current-player');
-        }
-    }
-    
+function switchCurrentPlayer(currentPlayer){
+    let symbolRed = (currentPlayer == PLAYER) ? MARK : (MARK == 'X') ? 'O' : 'X' 
+    let symbolBlue = (symbolRed == 'X') ? 'O' : 'X';
+
+    document.getElementById(symbolRed).classList.add('current-player');
+    document.getElementById(symbolBlue).classList.remove('current-player');
 }
 
 ctrlBtn[0].addEventListener('click', () => {
-    // переход на следующий раунд
+    // переход в следующий раунд
     let event = {
         'type': 'await',
         'player': PLAYER
@@ -100,16 +78,12 @@ ws.onopen = function(){
 }
 
 ws.onmessage = function(e){
-    let pos;
-    let mark;
     let player;
-    let cell;
-    let winner;
     let currentPlayer;
     let data = JSON.parse(e.data);
     let event = {};
-    console.log(data);
 
+    console.log(data);
     switch (data.type){
         case 'init':
             PLAYER = 'red';
@@ -118,8 +92,6 @@ ws.onmessage = function(e){
             event.player = PLAYER;
 
             linkField.value = window.location.href + `?join=${data.join}`;
-            MARK = data.mark;
-            console.log(data.join);
             
             ws.send(JSON.stringify(event));
             break;
@@ -127,122 +99,74 @@ ws.onmessage = function(e){
         case 'join':
             PLAYER = 'blue';
 
-            let linkBox = document.getElementsByClassName('link-box')[0];
-            linkBox.style.display = 'none';
+            document.getElementsByClassName('link-box')[0].style.display = 'none';
 
             event.type = 'await';
             event.player = PLAYER;
 
-            MARK = data.mark;
-
             ws.send(JSON.stringify(event));
             break;
         
-        case 'mapping':
-            let map = data.map
-            let keys = Object.keys(map);
-            keys.forEach(key => {
-                buttons[Number(key)].innerText = map[key];
-            })
-            
-            break;
-
-        case 'player':
-            currentPlayer = data.current;
-            switchCurrentPlayer(currentPlayer);
-
-            if (currentPlayer != PLAYER){
-                buttons.forEach(btn => {
-                    btn.disabled = true;
-                })
-            }
-            break;
-
         case 'game':
-            pos = data.pos;
-            mark = data.mark;
-            player = data.player;
-
-            buttons.forEach(btn => {
-                if (player == PLAYER){
-                    btn.disabled = false;
-                }
-                else{
-                    btn.disabled = true;
-                }
-                
-            })
-
-            cell = document.querySelector(`.btn[value="${pos}"]`);
-            cell.innerText = mark;
-
+            player = data.next;
+            buttons.forEach(btn => {btn.disabled = !(player == PLAYER);});
+            document.querySelector(`.btn[value="${data.pos}"]`).innerText = data.mark;
             switchCurrentPlayer(player);
+
             break;
         
         case 'win':
-            winner = data.winner;
-            pos = data.pos;
-            mark = data.mark;
+            document.getElementsByClassName('left')[0].innerText = data.red;
+            document.getElementsByClassName('right')[0].innerText = data.blue;
+            document.querySelector(`.btn[value="${data.pos}"]`).innerText = data.mark;
+            document.getElementsByClassName('pop-up-container')[0].style.display = 'grid';
 
-            let redScore = data.red;
-            let blueScore = data.blue; 
-
-            cell = document.querySelector(`.btn[value="${pos}"]`);
-            cell.innerText = mark;
+            btnDisabled(true);
             
-            let redPlayerScore = document.getElementsByClassName('left')[0]; 
-            let bluePlayerScore = document.getElementsByClassName('right')[0]; 
+            let resultBox = document.getElementById('result-baner');
+            let span = document.createElement('span');
 
-            redPlayerScore.innerText = redScore;
-            bluePlayerScore.innerText = blueScore;
+            span.innerText = (data.winner == 'red') ? 'красным' : 'синим';
+            span.style.color = (data.winner == 'red') ? 'var(--palyer-one)' : 'var(--player-two)';
 
-            buttons.forEach(btn => {
-                btn.disabled = true;
-            })
-            
+            resultBox.innerText = 'Победа за ';
+            resultBox.style.color = 'var(--bg-2)';
+            resultBox.appendChild(span);
 
-            let popUp = document.getElementsByClassName('pop-up-container')[0];
-            popUp.style.display = 'grid';
-            let winnerHolder = document.getElementById('winner');
-            if (winner == 'red'){
-                winnerHolder.innerText = 'красным'
-                winnerHolder.style.color = 'var(--palyer-one)';
-            }else{
-                winnerHolder.innerText = 'синим';
-                winnerHolder.style.color = 'var(--player-two)';
-            }
-            
-            break
+            break;
         
         case 'draw':
-            // доделать ничью
+            document.querySelector(`.btn[value="${data.pos}"]`).innerText = data.mark;
+            document.getElementsByClassName('pop-up-container')[0].style.display = 'grid';
+
+            btnDisabled(true);
+
+            result = document.getElementById('result-baner');
+            result.innerText = 'Ничья';
+            result.style.color = 'var(--draw-color)';
+
             break;
 
         case 'ready':
             MARK = data.mark;
             document.getElementsByClassName('pop-up-container')[0].style.display = 'none';
-            buttons.forEach(btn => {
-                btn.disabled = true;
-            });
+            btnDisabled(true);
 
             break;
 
         case 'all_ready':
             document.getElementsByClassName('pop-up-container')[0].style.display = 'none';
 
-            currentPlayer = data['player'];
+            currentPlayer = data.player;
             buttons.forEach(btn => {
                 btn.innerText = '';
-                if (currentPlayer === PLAYER){
-                    btn.disabled = false;
-                }
+                btn.disabled = !(currentPlayer === PLAYER);
             })
 
             switchCurrentPlayer(currentPlayer);
             break;
 
         case 'exception':
-            let desc = data.description;
-            throw new Error(desc);
+            throw new Error(data.description);
     }
 }
