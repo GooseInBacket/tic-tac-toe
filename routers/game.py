@@ -76,7 +76,7 @@ async def start_game(game: Game, ws: WebSocket, connections: set[WebSocket]):
                 'type': 'game',
                 'pos': pos,
                 'mark': mark,
-                'player': next_player
+                'next': next_player
             }
 
         # обработчик победы
@@ -94,7 +94,9 @@ async def start_game(game: Game, ws: WebSocket, connections: set[WebSocket]):
         # обработчик ничьи
         elif state == 'draw':
             response = {
-                'type': 'draw'
+                'type': 'draw',
+                'pos': pos,
+                'mark': mark
             }
 
         # ошибка чистого поля
