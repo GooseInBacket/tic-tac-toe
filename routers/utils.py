@@ -44,9 +44,6 @@ class Game:
         if (board[:, :] == '').all():
             return 'clear'
 
-        if (board[:, :] != '').all():
-            return 'draw'
-
         for line in range(board.shape[1]):
             if (board[:, line] == self.__win_a).all() or (board[line] == self.__win_a).all():
                 winner = 'red' if self.__players['red'][0] == 'X' else 'blue'
@@ -64,6 +61,9 @@ class Game:
             elif (a == self.__win_b).all() or (b == self.__win_b).all():
                 winner = 'red' if self.__players['red'][0] == 'O' else 'blue'
                 return winner
+
+        if (board[:, :] != '').all():
+            return 'draw'
 
     def restart(self):
         self.__borad = np.zeros(9, dtype=str)
