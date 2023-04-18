@@ -14,6 +14,7 @@
     --draw-color: #4cb260;
     --text: white;
     --bg-cell: var(--text);
+    --bg-active-btn: #dbdbdb;
     --cell-hover: #e8e8e8;
 }
 
@@ -269,7 +270,10 @@ input{
     gap: 10px;
 }
 
-.popUp-btn-ctrl button{
+.popUp-ctrl-btn{
+    z-index: 1;
+    overflow: hidden;
+    position: relative;
     padding: 10px;
     border: none;
     outline: none;
@@ -277,3 +281,26 @@ input{
     font-size: 20px;
     color: var(--bg-2);
 }
+
+.popUp-ctrl-btn:hover{
+    color: var(--text);
+    transition: color 0.3s ease-in;
+}
+
+.popUp-ctrl-btn::after{
+    z-index: -1;
+    content: '';
+    position: absolute;
+    top: 0;
+    left: -100%;
+    width: 100%;
+    height: 100%;
+    background-color: var(--bg-1);
+    transition: all 0.3s ease-in;
+}
+
+.popUp-ctrl-btn:hover::after{
+    left: 0;
+    transition: all 0.3s ease-out;
+}
+
