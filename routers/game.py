@@ -39,7 +39,7 @@ async def waiting_ready(ws: WebSocket, game: Game, connections: set[WebSocket], 
         logger.info('All is ready')
 
 
-async def start_game(game: Game, ws: WebSocket, connections: set[WebSocket]):
+async def start_game(game: Game, ws: WebSocket, connections: list[WebSocket]):
     while True:
         event = await ws.receive_json()
 
@@ -47,7 +47,14 @@ async def start_game(game: Game, ws: WebSocket, connections: set[WebSocket]):
 
         if event['type'] == 'exit':
             # обработать выход из игры через попап
-            pass
+            for socket in connections:
+                response = {
+                    'type': 'exit',
+                    'description': 'The player has left the game'
+                }
+                await socket.send_json(response)
+            await ws.close(code=1001, reason='The player has left the game')
+            break
 
         if event['type'] == 'await':
             await waiting_ready(ws, game, connections, event)
@@ -121,7 +128,7 @@ async def init(ws: WebSocket):
             game, connections = JOIN[key]
             mark = game.get_mark()
             game.set_mark('blue', mark)
-            connections.add(ws)
+            connections.append(ws)
 
             response = {
                 'type': 'join',
@@ -137,7 +144,7 @@ async def init(ws: WebSocket):
             game = Game()
             game.set_current_player()
 
-            connections = {ws}
+            connections = [ws]
             key = secrets.token_urlsafe(12)
             mark = game.get_mark()
 
@@ -157,7 +164,6 @@ async def init(ws: WebSocket):
 
     except WebSocketDisconnect:
         _, connections = JOIN[key]
-        connections = list(connections)
         connections.remove(ws)
 
         logger.info(f'Player {ws.client} left game')
@@ -165,6 +171,6 @@ async def init(ws: WebSocket):
             await socket.send_text('Client left')
 
     finally:
-        if JOIN[key]:
+        if JOIN[key] and connections[0] == ws:
             del JOIN[key]
             logger.info(f'Game {key} delete')

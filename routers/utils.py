@@ -89,9 +89,7 @@ class Game:
 
     def get_new_mark(self, player):
         current_mark = self.__players[player][0]
-        print(current_mark)
         self.__players[player][0] = 'X' if current_mark == 'O' else 'O'
-        print(self.__players[player][0])
         return self.__players[player][0]
 
     def get_score(self, player: str):

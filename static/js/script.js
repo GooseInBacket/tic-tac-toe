@@ -165,7 +165,11 @@ ws.onmessage = function(e){
 
             switchCurrentPlayer(currentPlayer);
             break;
-
+        
+        case 'exit':
+            // пока ничего не происходит
+            break;
+        
         case 'exception':
             throw new Error(data.description);
     }
