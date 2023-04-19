@@ -30,3 +30,14 @@ async def index(request: Request):
         query['status_code'] = 404
     response = templates.TemplateResponse(**query)
     return response
+
+
+@app.get('/mainmenu', response_class=HTMLResponse)
+async def main_menu(request: Request):
+    query = {
+        'name': 'mainmenu.html',
+        'status_code': 200,
+        'context': {'request': request}
+    }
+    response = templates.TemplateResponse(**query)
+    return response
