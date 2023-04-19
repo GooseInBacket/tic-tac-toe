@@ -165,5 +165,6 @@ async def init(ws: WebSocket):
             await socket.send_text('Client left')
 
     finally:
-        del JOIN[key]
-        logger.info(f'Game {key} delete')
+        if JOIN[key]:
+            del JOIN[key]
+            logger.info(f'Game {key} delete')
