@@ -42,7 +42,7 @@
 }
 
 h1{
-    font-size: 55px;
+    font-size: 30px;
     text-align: center;
     color: var(--text);
 }
@@ -81,7 +81,6 @@ h1{
     width: 100%;
     height: 100%;
     padding: 5px;
-    /* border-radius: 10px 0 0 10px; */
 
     font-size: 20px;
     text-transform: uppercase;
@@ -99,29 +98,18 @@ h1{
 
     width: 100%;
     height: 100%;
-    /* border-radius: 10px; */
 
     background-color: var(--bg-2);
 }
 
-/* #X{
-    border-radius: 10px 0 0 10px;
-}
-
-#O{
-    border-radius: 0 10px 10px 0;
-} */
-
 #X::before{
     animation: turn-out-x 0.3s;
     left: 100%;
-    /* border-radius: 10px 0 0 10px; */
 }
 
 #O::before{
     animation: turn-out-o 0.3s;
     left: -100%;
-    /* border-radius: 0 10px 10px 0; */
 }
 
 .current-player{
@@ -368,6 +356,7 @@ input{
 }
 
 .popUp-ctrl-btn{
+    cursor: pointer;
     z-index: 1;
     overflow: hidden;
     position: relative;
@@ -389,7 +378,9 @@ input{
     content: '';
     position: absolute;
     top: 0;
-    left: -100%;
+    left: 0;
+    transform: scale(0);
+    border-radius: 10px;
     width: 100%;
     height: 100%;
     background-color: var(--bg-1);
@@ -397,7 +388,29 @@ input{
 }
 
 .popUp-ctrl-btn:hover::after{
-    left: 0;
+    transform: scale(1.1);
     transition: all 0.3s ease-out;
 }
 
+
+/* Тут обслуживается окно для mainmenu */
+.main-box{
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
+.menu{
+    display: flex;
+    flex-direction: column;
+    gap: 5px;
+}
+
+.mode-btn{
+    width: 100%;
+    padding: 10px;
+    border-radius: 10px;
+    outline: none;
+    border: none;
+    color: var(--bg-2);
+}
