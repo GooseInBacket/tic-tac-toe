@@ -351,7 +351,7 @@ input{
 
 .popUp-btn-ctrl{
     display: grid;
-    grid-template-columns: 1fr 200px;
+    grid-template-columns: 1fr 1fr;
     gap: 10px;
 }
 
@@ -368,12 +368,12 @@ input{
     color: var(--bg-2);
 }
 
-.popUp-ctrl-btn:hover{
+.popUp-ctrl-btn:enabled:hover{
     color: var(--text);
     transition: color 0.3s ease-in;
 }
 
-.popUp-ctrl-btn::after{
+.popUp-ctrl-btn:enabled::after{
     z-index: -1;
     content: '';
     position: absolute;
@@ -387,7 +387,7 @@ input{
     transition: all 0.3s ease-in;
 }
 
-.popUp-ctrl-btn:hover::after{
+.popUp-ctrl-btn:enabled:hover::after{
     transform: scale(1.1);
     transition: all 0.3s ease-out;
 }
@@ -413,4 +413,18 @@ input{
     outline: none;
     border: none;
     color: var(--bg-2);
+}
+
+/* room_error.html */
+.error-box{
+    color: var(--text);
+    font-size: 2.2rem;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+}
+
+.error-box span:nth-child(1){
+    text-align: center;
+    font-size: 10rem;
 }
