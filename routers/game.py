@@ -11,7 +11,7 @@ manager = ConnectionManager()
 JOIN = dict()
 
 
-async def waiting_ready(ws: WebSocket, game: Game, connections: set[WebSocket], event: dict):
+async def waiting_ready(ws: WebSocket, game: Game, connections: list[WebSocket], event: dict):
     player = event['player']
     mark = game.get_new_mark(player)
     game.set_mark(player, mark)
@@ -89,14 +89,14 @@ async def start_game(game: Game, ws: WebSocket, connections: list[WebSocket]):
         # обработчик победы
         elif state in ('red', 'blue'):
             game.set_score_for(state)
-            response = {
+            response.update({
                 'type': 'win',
                 'winner': state,
                 'pos': pos,
                 'mark': mark,
                 'red': game.get_score('red'),
                 'blue': game.get_score('blue')
-            }
+            })
 
         # обработчик ничьи
         elif state == 'draw':
@@ -142,6 +142,7 @@ async def init(ws: WebSocket):
         else:
             ''' Хост '''
             game = Game()
+            game.set_host(ws)
             game.set_current_player()
 
             connections = [ws]
@@ -163,14 +164,19 @@ async def init(ws: WebSocket):
             await start_game(game, ws, connections)
 
     except WebSocketDisconnect:
-        _, connections = JOIN[key]
-        connections.remove(ws)
+        if (key in JOIN) and (game.host() == ws):
+            _, connections = JOIN[key]
+            connections.remove(ws)
 
+            for socket in connections:
+                await socket.send_json({
+                    'type': 'exception',
+                    'description': 'host leave game'
+                })
         logger.info(f'Player {ws.client} left game')
-        for socket in connections:
-            await socket.send_text('Client left')
 
     finally:
-        if JOIN[key] and connections[0] == ws:
+        host = game.host()
+        if (key in JOIN) and (host == ws):
             del JOIN[key]
             logger.info(f'Game {key} delete')

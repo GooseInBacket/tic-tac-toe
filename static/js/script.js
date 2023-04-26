@@ -40,6 +40,7 @@ ctrlBtn[1].addEventListener('click', () =>{
     }
 
     ws.send(JSON.stringify(event));
+    document.location.href = '/';
 })
 
 copyBtn.addEventListener('click', () => {
@@ -166,11 +167,26 @@ ws.onmessage = function(e){
             switchCurrentPlayer(currentPlayer);
             break;
         
-        case 'exit':
-            // пока ничего не происходит
-            break;
-        
         case 'exception':
-            throw new Error(data.description);
+            let description = data.description;
+            if (description === 'host leave game'){
+                let container = document.getElementsByClassName('container')[0];
+                let errorBox = document.createElement('div');
+                let statusCode = document.createElement('span');
+                let desc = document.createElement('span');
+                
+                errorBox.classList.add('error-box');
+
+                statusCode.innerText = '404';
+                desc.innerText = 'Хост покинул комнату'
+
+                errorBox.appendChild(statusCode);
+                errorBox.appendChild(desc);
+                
+                container.innerHTML = '';
+                container.appendChild(errorBox);
+
+                // document.location.href = document.location.href;
+            }
     }
 }

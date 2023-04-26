@@ -17,7 +17,7 @@ templates = Jinja2Templates(directory='templates')
 logger.add(sys.stderr, format='{time} {level} {message}', filter='my_module', level='INFO')
 
 
-@app.get('/', response_class=HTMLResponse)
+@app.get('/coop', response_class=HTMLResponse)
 async def index(request: Request):
     event, *key = request.url.query.split('=')
     query = {
@@ -32,7 +32,7 @@ async def index(request: Request):
     return response
 
 
-@app.get('/mainmenu', response_class=HTMLResponse)
+@app.get('/', response_class=HTMLResponse)
 async def main_menu(request: Request):
     query = {
         'name': 'mainmenu.html',

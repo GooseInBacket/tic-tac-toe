@@ -35,7 +35,8 @@ class Game:
         self.__win_a = np.array(['X', 'X', 'X'])
         self.__win_b = np.array(['O', 'O', 'O'])
         self.__current_player = None
-        self.__ready_for_resume = 0;
+        self.__ready_for_resume = 0
+        self.__host = None
 
     def check_bord(self):
         board = self.__borad.reshape(3, 3)
@@ -76,6 +77,9 @@ class Game:
             self.restart()
             return True
 
+    def host(self):
+        return self.__host
+
     def next_player(self):
         players_list = list(self.__players.keys())
         current_player = players_list.index(self.__current_player)
@@ -102,6 +106,9 @@ class Game:
         assert self.__borad[pos] == ''
 
         self.__borad[pos] = mark
+
+    def set_host(self, ws: WebSocket):
+        self.__host = ws
 
     def get_current_player(self):
         return self.__current_player
